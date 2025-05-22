@@ -10,12 +10,11 @@ export class StartMenu extends Component {
     bgm: AudioSource = null!;
 
     start() {
-        // ✅ 一進場就播音樂（並 loop）
+        // 如果尚未播放，就播放（並且會 loop）
         if (this.bgm && !this.bgm.playing) {
             this.bgm.play();
         }
 
-        // 設定按鈕行為
         this.startButton.node.on(Button.EventType.CLICK, this.onStartGame, this);
     }
 

@@ -32,23 +32,23 @@ export class PlayerController extends Component {
   }
 
   update(dt: number) {
-    // 水平移動
     this.body.linearVelocity = new Vec2(
       this.moveDir * this.moveSpeed,
       this.body.linearVelocity.y
     );
 
-    // —— 新增：每幀都根據 moveDir 翻轉
     if (this.moveDir < 0) {
       this.node.setScale(new Vec3(-Math.abs(this.node.scale.x), this.node.scale.y, this.node.scale.z));
     } else if (this.moveDir > 0) {
       this.node.setScale(new Vec3(Math.abs(this.node.scale.x), this.node.scale.y, this.node.scale.z));
     }
 
-    // 停止時停動畫
     if (this.moveDir === 0 && this.isGrounded) {
       this.anim.stop();
-      this.anim.play('Mario_Idle');
+    }
+
+    if (this.node.worldPosition.y < -100) {
+      this.respawn();
     }
   }
 
@@ -56,11 +56,9 @@ export class PlayerController extends Component {
     switch (evt.keyCode) {
       case KeyCode.KEY_A:
         this.moveDir = -1;
-        if (this.isGrounded) this.anim.play('Mario_Walk');
         break;
       case KeyCode.KEY_D:
         this.moveDir = 1;
-        if (this.isGrounded) this.anim.play('Mario_Walk');
         break;
       case KeyCode.SPACE:
         this.jump();
@@ -89,11 +87,32 @@ export class PlayerController extends Component {
     self: Collider2D, other: Collider2D, contact: any
   ) {
     this.isGrounded = true;
+
+    // 如果當前動畫是跳躍，就不做任何切換
+    const current = this.anim.defaultClip?.name;
+    const playing = this.anim.getState(current || '')?.isPlaying;
+
+    // 判斷目前是否是跳躍動畫
+    const jumpState = this.anim.getState('Mario_Jump');
+    const isJumping = jumpState?.isPlaying;
+
+    // 落地時且正在移動，但不能是還在播跳躍動畫時，就播走路
+    if (this.moveDir !== 0 && !isJumping) {
+      const walkState = this.anim.getState('Mario_Walk');
+      if (!walkState || !walkState.isPlaying) {
+        this.anim.play('Mario_Walk');
+      }
+    }
   }
 
   private onEndContact(
     self: Collider2D, other: Collider2D, contact: any
   ) {
     this.isGrounded = false;
+  }
+
+  private respawn() {
+    this.body.linearVelocity = new Vec2(0, 0);
+    this.node.setWorldPosition(new Vec3(140, 400, 0));
   }
 }
