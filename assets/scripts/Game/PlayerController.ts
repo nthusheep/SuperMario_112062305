@@ -48,6 +48,7 @@ export class PlayerController extends Component {
     // 停止時停動畫
     if (this.moveDir === 0 && this.isGrounded) {
       this.anim.stop();
+      this.anim.play('Mario_Idle');
     }
   }
 

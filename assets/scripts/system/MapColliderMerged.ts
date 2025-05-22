@@ -1,5 +1,3 @@
-// scripts/system/MapColliderMerged.ts
-
 import {
   _decorator,
   Component,
@@ -12,24 +10,20 @@ import {
   CCString,
   Node,
   Vec3,
-  UITransform,
-  SpriteFrame,
+  UITransform
 } from 'cc';
-import { QuestionBlock } from '../Game/QuestionBlock';
+
 const { ccclass, property } = _decorator;
 
 @ccclass('MapColliderMerged')
 export class MapColliderMerged extends Component {
   @property({ type: [CCString] })
-  public layersToInit: string[] = ['Floor', 'Platform', 'QuestionBlock'];
-
-  @property(SpriteFrame)
-  public usedFrame: SpriteFrame = null!;
+  public layersToInit: string[] = ['Floor', 'Platform'];
 
   start() {
     // 開啟物理系統
     PhysicsSystem2D.instance.enable = true;
-    PhysicsSystem2D.instance.debugDrawFlags = 1;
+    PhysicsSystem2D.instance.debugDrawFlags = 0;
 
     const tm = this.getComponent(TiledMap)!;
     if (!tm) {
@@ -58,7 +52,6 @@ export class MapColliderMerged extends Component {
           } else if (runStart >= 0) {
             const runEnd = x - 1;
 
-            // 取得排頭與排尾的瓦片節點
             const tileA = layer.getTiledTileAt(runStart, y, true)!;
             const tileB = layer.getTiledTileAt(runEnd, y, true)!;
             const posA = tileA.node.getWorldPosition();
@@ -69,35 +62,22 @@ export class MapColliderMerged extends Component {
               0
             );
 
-            // 建立碰撞節點
             const colNode = new Node(`col_${layerName}_${y}_${runStart}`);
             colNode.parent = mapNode;
 
-            // 轉成本地座標
             const localMid = ui.convertToNodeSpaceAR(worldMid);
             colNode.setPosition(localMid.x, localMid.y, 0);
 
-            // 計算大小
             const runLen = runEnd - runStart + 1;
             const w = runLen * tileSize.width;
             const h = tileSize.height;
 
-            // 加 BoxCollider2D
             const c = colNode.addComponent(BoxCollider2D);
             c.size.set(w, h);
             c.offset.set(tileSize.width / 2, tileSize.height / 2);
 
-            // 加 Static RigidBody2D
             const rb = colNode.addComponent(RigidBody2D);
             rb.type = ERigidBody2DType.Static;
-
-            // 如果這是問號磚層，掛問號磚互動腳本並設定灰階貼圖
-            if (layerName === 'QuestionBlock') {
-              // 新增問號磚互動腳本，並轉成 QuestionBlock 類型
-            const qb = colNode.addComponent(QuestionBlock) as QuestionBlock;
-              qb.usedFrame = this.usedFrame;
-            }
-
             runStart = -1;
           }
         }
