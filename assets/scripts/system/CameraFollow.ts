@@ -5,7 +5,7 @@ const { ccclass, property } = _decorator;
 @ccclass('CameraFollow')
 export class CameraFollow extends Component {
   @property({ type: Node }) public target: Node | null = null;
-  @property public offset = new Vec3(0, 100, 0);
+  @property public offset = new Vec3(0, 0, 0);
 
   update() {
     if (this.target) {

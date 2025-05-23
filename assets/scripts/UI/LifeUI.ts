@@ -1,34 +1,26 @@
-import { _decorator, Component, Node, Prefab, instantiate, Vec3 } from 'cc';
+// assets/scripts/ui/LifeUI.ts
+import { _decorator, Component, Node, Prefab, instantiate } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('LifeUI')
 export class LifeUI extends Component {
-  @property({ type: Prefab })
-  heartPrefab: Prefab = null!;
+  @property(Prefab)      public heartPrefab!: Prefab;
+  @property(Node)        public uiContainer!: Node;
+  @property public maxHearts: number = 3;
 
-  @property({ type: Node })
-  uiContainer: Node = null!;
-
-  @property
-  maxHearts: number = 3;
-
-  private heartNodes: Node[] = [];
+  private hearts: Node[] = [];
 
   start() {
-    this.initHearts();
-  }
-
-  private initHearts() {
-    this.heartNodes.forEach(h => h.destroy());
-    this.heartNodes = [];
+    // 預先生成滿格
     for (let i = 0; i < this.maxHearts; i++) {
-      const heart = instantiate(this.heartPrefab);
-      heart.setParent(this.uiContainer);
-      this.heartNodes.push(heart);
+      const h = instantiate(this.heartPrefab);
+      h.setParent(this.uiContainer);
+      this.hearts.push(h);
     }
   }
 
+  /** 更新要顯示的心數 */
   public updateHearts(count: number) {
-    this.heartNodes.forEach((h, i) => h.active = i < count);
+    this.hearts.forEach((h, i) => h.active = i < count);
   }
 }

@@ -5,6 +5,8 @@ import {
   Collider2D, Contact2DType,
   Animation, Sprite, Vec3
 } from 'cc';
+import { LifeUI } from '../UI/LifeUI';   // 處理生命值!
+
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerController')
