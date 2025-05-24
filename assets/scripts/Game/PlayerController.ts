@@ -3,7 +3,8 @@ import {
   Input, input, EventKeyboard, KeyCode,
   RigidBody2D, Vec2,
   Collider2D, Contact2DType,
-  Animation, Sprite, Vec3
+  Animation, Sprite, Vec3, tween,
+  BoxCollider2D,
 } from 'cc';
 import { LifeUI } from '../UI/LifeUI';   // 處理生命值!
 
@@ -31,6 +32,9 @@ export class PlayerController extends Component {
     const col = this.getComponent(Collider2D)!;
     col.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
     col.on(Contact2DType.END_CONTACT,   this.onEndContact,   this);
+
+    // 可選：訂閱成長事件（若採用事件驅動）
+    // this.node.on('player-grow', this.grow, this);
   }
 
   update(dt: number) {
@@ -91,10 +95,6 @@ export class PlayerController extends Component {
     this.isGrounded = true;
 
     // 如果當前動畫是跳躍，就不做任何切換
-    const current = this.anim.defaultClip?.name;
-    const playing = this.anim.getState(current || '')?.isPlaying;
-
-    // 判斷目前是否是跳躍動畫
     const jumpState = this.anim.getState('Mario_Jump');
     const isJumping = jumpState?.isPlaying;
 
@@ -115,6 +115,54 @@ export class PlayerController extends Component {
 
   private respawn() {
     this.body.linearVelocity = new Vec2(0, 0);
-    this.node.setWorldPosition(new Vec3(140, 400, 0));
+    this.node.setWorldPosition(new Vec3(100, 400, 0));
+    // 通知 GameManager 扣命
+    this.node.scene.emit('player-died');
   }
+
+  /**
+   * 吃到蘑菇後變大
+   */
+  public grow(duration = 8) {
+    // 1. 放大角色
+    tween(this.node)
+      .to(0.1, { scale: new Vec3(1.5, 1.5, 1) })
+      .start();
+
+    // 2. 同步放大碰撞體，防止穿透
+    const box = this.getComponent(BoxCollider2D);
+    if (box) {
+      const sz = box.size.clone();
+      sz.width *= 1.2;
+      sz.height *= 1.2;
+      box.size = sz;
+    }
+    // 移動速度跳躍高度增加
+    this.moveSpeed *= 1.2;
+    this.jumpForce *= 1.2;
+    // 固定持續時間後回復
+    this.scheduleOnce(() => this.shrink(), duration);
+  }
+  /**
+   * 縮小角色
+   */
+  public shrink() {
+    // 1. 縮小角色
+    tween(this.node)
+      .to(0.1, { scale: new Vec3(1, 1, 1) })
+      .start();
+
+    // 2. 同步縮小碰撞體
+    const box = this.getComponent(BoxCollider2D);
+    if (box) {
+      const sz = box.size.clone();
+      sz.width /= 1.2;
+      sz.height /= 1.2;
+      box.size = sz;
+    }
+    // 恢復原來速度和跳躍高度
+    this.moveSpeed /= 1.2;
+    this.jumpForce /= 1.2;
+  }
+
 }

@@ -17,12 +17,12 @@ const { ccclass, property } = _decorator;
 @ccclass('MapColliderMerged')
 export class MapColliderMerged extends Component {
   @property({ type: [CCString] })
-  public layersToInit: string[] = ['Floor', 'Platform', 'Background'];
+  public layersToInit: string[] = ['Floor', 'Platform', 'Background','EndPoint'];
 
   start() {
     // 1. 打開物理系統與 Debug Draw
     PhysicsSystem2D.instance.enable = true;
-    PhysicsSystem2D.instance.debugDrawFlags = 0;
+    PhysicsSystem2D.instance.debugDrawFlags = 1;
 
     // 2. 取得 TileMap 組件
     const tm = this.getComponent(TiledMap)!;

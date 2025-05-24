@@ -10,6 +10,9 @@ import {
   AnimationClip,
   Vec3,
   tween,
+  UITransform,
+  Prefab,
+  instantiate
 } from 'cc';
 const { ccclass, property } = _decorator;
 
@@ -20,6 +23,9 @@ export class QuestionBlock extends Component {
 
   @property(AnimationClip)
   public idleAnim: AnimationClip = null!;
+
+  @property({ type: Prefab })
+  public mushroomPrefab: Prefab = null!;
 
   private isUsed = false;
 
@@ -56,5 +62,21 @@ export class QuestionBlock extends Component {
       .by(0.08, { position: new Vec3(0, 10, 0) })
       .by(0.08, { position: new Vec3(0, -10, 0) })
       .start();
+
+
+    // 2. 延遲一個 frame 再生成、加到父節點
+    this.scheduleOnce(() => {
+      const mush = instantiate(this.mushroomPrefab);
+      // 用 addChild 會比 setParent 更直觀
+      this.node.parent!.addChild(mush);
+      // 定好位置
+      const worldPos = this.node.worldPosition;
+      const height = this.getComponent(UITransform)!.height;
+      mush.setWorldPosition(new Vec3(
+        worldPos.x,
+        worldPos.y + height,
+        worldPos.z
+      ));
+    }, 0);
   }
 }
