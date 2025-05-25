@@ -22,7 +22,7 @@ export class MapColliderMerged extends Component {
   start() {
     // 1. 打開物理系統與 Debug Draw
     PhysicsSystem2D.instance.enable = true;
-    PhysicsSystem2D.instance.debugDrawFlags = 1;
+    PhysicsSystem2D.instance.debugDrawFlags = 0;
 
     // 2. 取得 TileMap 組件
     const tm = this.getComponent(TiledMap)!;
