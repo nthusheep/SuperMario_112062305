@@ -1,5 +1,7 @@
-// assets/scripts/data/GameData.ts
+// data/GameData.ts
 export class GameData {
-  static timeUsed: number = 0;
-  static finalScore: number = 0; // 你也可以順便記錄分數
+  public static timeUsed = 0;
+  public static finalScore = 0;
+  // 加這一行，用來記錄目前關卡
+  public static currentLevel = 0;
 }

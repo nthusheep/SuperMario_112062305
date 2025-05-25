@@ -1,8 +1,29 @@
 {
-  "name": "SuperMario_112062305",
+  "name": "supermario_112062305",
   "uuid": "5fb61bf3-ad24-4a5c-982e-828e2a314c5e",
   "creator": {
     "version": "3.8.6"
   },
-  "version": "3.8.6"
+  "version": "3.8.6",
+  "dependencies": {
+    "firebase": "^11.8.1"
+  },
+  "description": "",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nthusheep/SuperMario_112062305.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/nthusheep/SuperMario_112062305/issues"
+  },
+  "homepage": "https://github.com/nthusheep/SuperMario_112062305#readme"
 }

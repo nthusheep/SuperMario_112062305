@@ -4,10 +4,10 @@ import {
   RigidBody2D, Vec2,
   Collider2D, Contact2DType,
   Animation, Sprite, Vec3, tween,
-  BoxCollider2D,
+  BoxCollider2D, director,
+  Node,
 } from 'cc';
-import { LifeUI } from '../UI/LifeUI';   // 處理生命值!
-
+import { SoundManager } from '../Managers/SoundManager'; // 統一管理
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerController')
@@ -54,7 +54,12 @@ export class PlayerController extends Component {
     }
 
     if (this.node.worldPosition.y < -100) {
+      SoundManager.instance.playDie(); // 播死亡音效
       this.respawn();
+    }
+    if (this.node.worldPosition.y>=0 && this.node.worldPosition.x >= 1560) {
+      // 跳到 VictoryScene（或你自定義的勝利畫面）
+      director.loadScene('WinScene');
     }
   }
 
@@ -69,6 +74,7 @@ export class PlayerController extends Component {
       case KeyCode.SPACE:
         this.jump();
         this.anim.play('Mario_Jump');
+
         break;
     }
   }
@@ -85,7 +91,8 @@ export class PlayerController extends Component {
   private jump() {
     if (this.isGrounded) {
       this.body.linearVelocity = new Vec2(this.body.linearVelocity.x, this.jumpForce);
-      this.isGrounded = false;
+      this.isGrounded = false;        
+      SoundManager.instance.playJump(); // 跳躍音效
     }
   }
 
@@ -116,14 +123,15 @@ export class PlayerController extends Component {
   private respawn() {
     this.body.linearVelocity = new Vec2(0, 0);
     this.node.setWorldPosition(new Vec3(100, 400, 0));
-    // 通知 GameManager 扣命
     this.node.scene.emit('player-died');
   }
 
   /**
    * 吃到蘑菇後變大
    */
-  public grow(duration = 8) {
+  public grow(duration = 9.3) {
+    // 播放變大音效
+    SoundManager.instance.playGrow();
     // 1. 放大角色
     tween(this.node)
       .to(0.1, { scale: new Vec3(1.5, 1.5, 1) })

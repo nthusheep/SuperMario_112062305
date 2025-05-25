@@ -12,8 +12,11 @@ import {
   tween,
   UITransform,
   Prefab,
-  instantiate
+  instantiate,
+  RigidBody2D,
+  Vec2,
 } from 'cc';
+import { SoundManager } from '../Managers/SoundManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('QuestionBlock')
@@ -45,14 +48,22 @@ export class QuestionBlock extends Component {
   ) {
     if (this.isUsed) return;
 
-    const n = contact.getWorldManifold().normal;      // 玩家頂上來時 n.y ≈ -1
-    if (n.y < -0.7) {                                // ← 關鍵：改成 < -0.7
+    const playerRb = _other.getComponent(RigidBody2D);
+    if (!playerRb) return;                // 沒有 RigidBody2D 就不是玩家
+
+    const playerY = _other.node.worldPosition.y;
+    const blockY  = this.node.worldPosition.y;
+
+    if (playerY < blockY - 2 && playerRb.linearVelocity.y > 0) {
       this.isUsed = true;
       this.triggerBounce();
     }
   }
 
+
   private triggerBounce() {
+      // 播敲擊音效
+      SoundManager.instance.playBlockHit();
     // 停動畫 + 換貼圖
     this.getComponent(Animation)!.stop();
     this.getComponent(Sprite)!.spriteFrame = this.usedFrame;
