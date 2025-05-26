@@ -8,6 +8,7 @@ import {
   Node,
 } from 'cc';
 import { SoundManager } from '../Managers/SoundManager'; // 統一管理
+import { GameManager } from '../Managers/GameManager'; // 引入 GameManager
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerController')
@@ -17,7 +18,7 @@ export class PlayerController extends Component {
   private sprite!: Sprite;
   private moveDir = 0;
   private isGrounded = false;
-
+  private gameManager: GameManager | null = null; // 用於儲存 GameManager 實例
   @property moveSpeed = 6;
   @property jumpForce = 20;
 
@@ -57,9 +58,11 @@ export class PlayerController extends Component {
       SoundManager.instance.playDie(); // 播死亡音效
       this.respawn();
     }
-    if (this.node.worldPosition.y>=0 && this.node.worldPosition.x >= 1560) {
-      // 跳到 VictoryScene（或你自定義的勝利畫面）
-      director.loadScene('WinScene');
+    // --- 勝利條件判斷 ---
+    // 假設 X 軸 1560 且 Y 軸大於等於 0 為勝利條件
+    if (this.node.worldPosition.y >= 0 && this.node.worldPosition.x >= 1560) {
+      GameManager.instance?.onGameWin();  // ← 直接呼叫
+      this.enabled = false;
     }
   }
 

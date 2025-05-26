@@ -4,6 +4,22 @@
 
   /* Add your custom configuration here. */
   "compilerOptions": {
-    "strict": false
+    /* 讓 TypeScript 輸出 ESModule，而不是 CommonJS */
+    "module": "ESNext",
+
+    /* 建議 target 也拉到 2020 以上，配合 firebase/compat 沒問題 */
+    "target": "ES2020",
+
+    /* 跟 Node 的解析規則一致，遇到 .js/.ts/.mjs 都能找到 */
+    "moduleResolution": "Node",
+
+    /* 如果你想更嚴謹可打開，預設保持 false */
+    "strict": false,
+
+    /* firebase/compat 有 default export，用這個避免 import 型別衝突 */
+    "esModuleInterop": true,
+
+    /* 讓 IDE 找得到 ES2020 與 DOM API 型別 */
+    "lib": ["ES2020", "DOM"]
   }
 }

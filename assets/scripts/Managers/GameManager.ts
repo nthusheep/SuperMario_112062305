@@ -10,6 +10,11 @@ const { ccclass, property } = _decorator;
 
 @ccclass('GameManager')
 export class GameManager extends Component {
+  public static instance: GameManager;
+
+  onLoad() {
+    GameManager.instance = this;        // ★ 關鍵：掛到靜態屬性
+  }
   /** UI 組件 */
   @property(LifeUI)  public lifeUI!: LifeUI;
   @property(ScoreUI) public scoreUI!: ScoreUI;
@@ -79,5 +84,16 @@ export class GameManager extends Component {
     GameData.finalScore = this.score;
 
     director.loadScene('GameoverScene');
+  }
+    // ✅ 處理遊戲勝利的函式
+  public onGameWin() {
+      console.log('Game Win!');
+      this.unschedule(this._tick);
+
+      GameData.timeUsed = this.elapsedTime;
+      GameData.finalScore = this.score;
+
+      console.log(`GameWin Data: Time - ${GameData.timeUsed}, Score - ${GameData.finalScore}, Level - ${GameData.currentLevel}`);
+      director.loadScene('WinScene');
   }
 }
