@@ -22,17 +22,21 @@ export class PlayerController extends Component {
   @property moveSpeed = 6;
   @property jumpForce = 20;
 
+  // 用於追蹤縮小排程的標識
+  private shrinkScheduler: (() => void) | null = null;
+  private isBig = false; // 用於追蹤玩家是否已經變大
+
   start() {
-    this.body   = this.getComponent(RigidBody2D)!;
-    this.anim   = this.getComponent(Animation)!;
+    this.body = this.getComponent(RigidBody2D)!;
+    this.anim = this.getComponent(Animation)!;
     this.sprite = this.getComponent(Sprite)!;
 
     input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
-    input.on(Input.EventType.KEY_UP,   this.onKeyUp,   this);
+    input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
 
     const col = this.getComponent(Collider2D)!;
     col.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
-    col.on(Contact2DType.END_CONTACT,   this.onEndContact,   this);
+    col.on(Contact2DType.END_CONTACT, this.onEndContact, this);
 
     // 可選：訂閱成長事件（若採用事件驅動）
     // this.node.on('player-grow', this.grow, this);
@@ -61,7 +65,7 @@ export class PlayerController extends Component {
     // --- 勝利條件判斷 ---
     // 假設 X 軸 1560 且 Y 軸大於等於 0 為勝利條件
     if (this.node.worldPosition.y >= 0 && this.node.worldPosition.x >= 1560) {
-      GameManager.instance?.onGameWin();  // ← 直接呼叫
+      GameManager.instance?.onGameWin(); // ← 直接呼叫
       this.enabled = false;
     }
   }
@@ -84,7 +88,7 @@ export class PlayerController extends Component {
 
   private onKeyUp(evt: EventKeyboard) {
     if ((evt.keyCode === KeyCode.KEY_A && this.moveDir === -1) ||
-        (evt.keyCode === KeyCode.KEY_D && this.moveDir === 1)) {
+      (evt.keyCode === KeyCode.KEY_D && this.moveDir === 1)) {
       this.moveDir = 0;
       this.body.linearVelocity = new Vec2(0, this.body.linearVelocity.y);
       this.anim.stop();
@@ -94,7 +98,7 @@ export class PlayerController extends Component {
   private jump() {
     if (this.isGrounded) {
       this.body.linearVelocity = new Vec2(this.body.linearVelocity.x, this.jumpForce);
-      this.isGrounded = false;        
+      this.isGrounded = false;
       SoundManager.instance.playJump(); // 跳躍音效
     }
   }
@@ -133,31 +137,47 @@ export class PlayerController extends Component {
    * 吃到蘑菇後變大
    */
   public grow(duration = 9.3) {
-    // 播放變大音效
-    SoundManager.instance.playGrow();
-    // 1. 放大角色
-    tween(this.node)
-      .to(0.1, { scale: new Vec3(1.5, 1.5, 1) })
-      .start();
-
-    // 2. 同步放大碰撞體，防止穿透
-    const box = this.getComponent(BoxCollider2D);
-    if (box) {
-      const sz = box.size.clone();
-      sz.width *= 1.2;
-      sz.height *= 1.2;
-      box.size = sz;
+    // 如果已經有一個縮小排程正在運行，先取消它
+    if (this.shrinkScheduler) {
+      this.unschedule(this.shrinkScheduler);
+      this.shrinkScheduler = null; // 清除舊的排程標識
     }
-    // 移動速度跳躍高度增加
-    this.moveSpeed *= 1.2;
-    this.jumpForce *= 1.2;
-    // 固定持續時間後回復
-    this.scheduleOnce(() => this.shrink(), duration);
+
+    // 只有在玩家尚未變大時才播放音效、放大角色和碰撞體、增加能力
+    if (!this.isBig) {
+      SoundManager.instance.playGrow();
+      // 1. 放大角色
+      tween(this.node)
+        .to(0.1, { scale: new Vec3(1.5, 1.5, 1) })
+        .start();
+
+      // 2. 同步放大碰撞體，防止穿透
+      const box = this.getComponent(BoxCollider2D);
+      if (box) {
+        const sz = box.size.clone();
+        sz.width *= 1.2;
+        sz.height *= 1.2;
+        box.size = sz;
+      }
+      // 移動速度跳躍高度增加
+      this.moveSpeed *= 1.2;
+      this.jumpForce *= 1.2;
+      this.isBig = true; // 標記玩家已變大
+    }
+
+    // 設定新的縮小排程
+    this.shrinkScheduler = () => this.shrink(); // 將要執行的函數保存起來
+    this.scheduleOnce(this.shrinkScheduler, duration);
   }
   /**
    * 縮小角色
    */
   public shrink() {
+    // 確保只有在玩家確實是大的時候才縮小
+    if (!this.isBig) {
+      return;
+    }
+
     // 1. 縮小角色
     tween(this.node)
       .to(0.1, { scale: new Vec3(1, 1, 1) })
@@ -174,6 +194,9 @@ export class PlayerController extends Component {
     // 恢復原來速度和跳躍高度
     this.moveSpeed /= 1.2;
     this.jumpForce /= 1.2;
+
+    this.isBig = false; // 標記玩家已縮小
+    this.shrinkScheduler = null; // 清除排程標識
   }
 
 }
